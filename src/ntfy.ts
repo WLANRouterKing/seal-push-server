@@ -7,14 +7,33 @@ interface PushNotification {
   tags?: string[]
 }
 
+interface PushTarget {
+  topic?: string      // Legacy: ntfy topic name
+  endpoint?: string   // UnifiedPush: full endpoint URL
+}
+
 const NTFY_SERVER = process.env.NTFY_SERVER || 'https://ntfy.sh'
 
 export async function sendPushNotification(
-  topic: string,
+  target: string | PushTarget,
   notification: PushNotification
 ): Promise<boolean> {
   try {
-    const url = `${NTFY_SERVER}/${topic}`
+    // Determine the URL: either direct endpoint or topic-based
+    let url: string
+    if (typeof target === 'string') {
+      // Legacy: topic string
+      url = `${NTFY_SERVER}/${target}`
+    } else if (target.endpoint) {
+      // UnifiedPush: direct endpoint URL
+      url = target.endpoint
+    } else if (target.topic) {
+      // Topic-based
+      url = `${NTFY_SERVER}/${target.topic}`
+    } else {
+      console.error('[ntfy] No valid target provided')
+      return false
+    }
 
     const headers: Record<string, string> = {
       'Title': notification.title,
@@ -44,7 +63,8 @@ export async function sendPushNotification(
       return false
     }
 
-    console.log(`[ntfy] Sent notification to topic: ${topic}`)
+    const logTarget = typeof target === 'string' ? target : (target.endpoint ? 'endpoint' : target.topic)
+    console.log(`[ntfy] Sent notification to: ${logTarget}`)
     return true
   } catch (error) {
     console.error('[ntfy] Error sending notification:', error)

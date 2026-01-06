@@ -22,11 +22,14 @@ async function restoreSubscriptions() {
   for (const sub of subs) {
     try {
       await relayPool.subscribeForUser(sub.npub, sub.relays, async () => {
-        await sendPushNotification(sub.ntfyTopic, {
-          title: 'Seal',
-          message: 'New encrypted message',
-          priority: 'high'
-        })
+        await sendPushNotification(
+          { topic: sub.ntfyTopic, endpoint: sub.endpoint },
+          {
+            title: 'Seal',
+            message: 'New encrypted message',
+            priority: 'high'
+          }
+        )
       })
     } catch (error) {
       console.error(`[Startup] Failed to restore ${sub.npub.slice(0, 12)}...`, error)
@@ -36,15 +39,12 @@ async function restoreSubscriptions() {
 
 restoreSubscriptions()
 
-// Health check
+// Health check (no sensitive info)
 app.get('/', (c) => {
-  const stats = database.getStats()
   return c.json({
     service: 'seal-push-server',
     version: '0.1.0',
-    status: 'ok',
-    subscriptions: stats.subscriptions,
-    connectedRelays: relayPool.connectedCount()
+    status: 'ok'
   })
 })
 
@@ -56,15 +56,29 @@ app.get('/health', (c) => {
 app.post('/subscribe', async (c) => {
   try {
     const body = await c.req.json()
-    const { npub, relays, ntfy_topic } = body
+    const { npub, relays, ntfy_topic, endpoint } = body
 
-    if (!npub || !ntfy_topic) {
-      return c.json({ error: 'npub and ntfy_topic are required' }, 400)
+    if (!npub) {
+      return c.json({ error: 'npub is required' }, 400)
+    }
+
+    // Require either ntfy_topic or endpoint
+    if (!ntfy_topic && !endpoint) {
+      return c.json({ error: 'Either ntfy_topic or endpoint is required' }, 400)
     }
 
     // Validate npub format
     if (!npub.startsWith('npub1') || npub.length !== 63) {
       return c.json({ error: 'Invalid npub format' }, 400)
+    }
+
+    // Validate endpoint URL if provided
+    if (endpoint) {
+      try {
+        new URL(endpoint)
+      } catch {
+        return c.json({ error: 'Invalid endpoint URL' }, 400)
+      }
     }
 
     // Use provided relays or defaults
@@ -73,27 +87,30 @@ app.post('/subscribe', async (c) => {
       : (process.env.DEFAULT_RELAYS?.split(',') || ['wss://relay.damus.io'])
 
     // Save subscription to database
-    database.saveSubscription(npub, relayUrls, ntfy_topic)
+    database.saveSubscription(npub, relayUrls, ntfy_topic, endpoint)
 
     // Start listening on relays
     await relayPool.subscribeForUser(npub, relayUrls, async (event) => {
       console.log(`[Push] New message for ${npub.slice(0, 12)}...`)
-      await sendPushNotification(ntfy_topic, {
-        title: 'Seal',
-        message: 'New encrypted message',
-        priority: 'high',
-        click: 'https://seal.dev' // Could be deep link
-      })
+      await sendPushNotification(
+        { topic: ntfy_topic, endpoint },
+        {
+          title: 'Seal',
+          message: 'New encrypted message',
+          priority: 'high',
+          click: 'https://seal.dev' // Could be deep link
+        }
+      )
     })
 
-    console.log(`[Subscribe] ${npub.slice(0, 12)}... subscribed to ${relayUrls.length} relays`)
+    console.log(`[Subscribe] ${npub.slice(0, 12)}... subscribed to ${relayUrls.length} relays (${endpoint ? 'UnifiedPush' : 'ntfy topic'})`)
 
     return c.json({
       success: true,
       subscription: {
         npub: npub.slice(0, 12) + '...',
         relays: relayUrls.length,
-        ntfyTopic: ntfy_topic
+        type: endpoint ? 'unifiedpush' : 'ntfy'
       }
     })
   } catch (error) {
