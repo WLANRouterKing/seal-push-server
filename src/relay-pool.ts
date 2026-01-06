@@ -63,6 +63,7 @@ export class RelayPool {
 
     const sub = this.pool.subscribeMany(
       relays,
+      // @ts-expect-error nostr-tools type issue with tag filters
       [filter],
       {
         onevent: async (event: Event) => {
