@@ -11,18 +11,17 @@ COPY . .
 FROM oven/bun:1-slim AS runner
 WORKDIR /app
 
-# Create non-root user (UID 1000 = default first user on Linux hosts)
-RUN groupadd --system --gid 1000 seal && \
-    useradd --system --uid 1000 --gid seal --no-create-home seal
+# Create non-root user (UID/GID 1000 = default first user on Linux hosts)
+RUN useradd --system --uid 1000 --gid 1000 --no-create-home seal || true
 
-COPY --from=builder --chown=seal:seal /app/node_modules ./node_modules
-COPY --from=builder --chown=seal:seal /app/src ./src
-COPY --from=builder --chown=seal:seal /app/package.json ./
+COPY --from=builder --chown=1000:1000 /app/node_modules ./node_modules
+COPY --from=builder --chown=1000:1000 /app/src ./src
+COPY --from=builder --chown=1000:1000 /app/package.json ./
 
 # Create data directory with correct permissions
-RUN mkdir -p /app/data && chown seal:seal /app/data
+RUN mkdir -p /app/data && chown 1000:1000 /app/data
 
-USER seal
+USER 1000
 
 EXPOSE 3000
 
