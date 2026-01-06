@@ -11,9 +11,9 @@ COPY . .
 FROM oven/bun:1-slim AS runner
 WORKDIR /app
 
-# Create non-root user
-RUN groupadd --system --gid 1001 seal && \
-    useradd --system --uid 1001 --gid seal --no-create-home seal
+# Create non-root user (UID 1000 = default first user on Linux hosts)
+RUN groupadd --system --gid 1000 seal && \
+    useradd --system --uid 1000 --gid seal --no-create-home seal
 
 COPY --from=builder --chown=seal:seal /app/node_modules ./node_modules
 COPY --from=builder --chown=seal:seal /app/src ./src
