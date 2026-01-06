@@ -1,0 +1,17 @@
+# Ersetze push.deine-domain.de mit deiner echten Domain
+push.deine-domain.de {
+    reverse_proxy seal-push-server:3000
+
+    # Security Headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+
+    # Kein Access Log (Privatsphäre) - nur Errors loggen
+    log {
+        output file /data/error.log
+        level ERROR
+    }
+}

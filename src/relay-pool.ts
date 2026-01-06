@@ -1,5 +1,5 @@
 import 'websocket-polyfill'
-import { SimplePool, type Event } from 'nostr-tools'
+import { SimplePool, type Event, type Filter } from 'nostr-tools'
 import { nip19 } from 'nostr-tools'
 import { database } from './database'
 import { verifyPoW, getEventDifficulty, POW_THRESHOLD } from './pow'
@@ -55,15 +55,15 @@ export class RelayPool {
 
     // Subscribe to Gift-Wrap events (kind 1059) for this pubkey
     // Gift-wraps are addressed to the recipient's pubkey in the 'p' tag
+    const filter: Filter = {
+      kinds: [1059], // Gift-wrap
+      '#p': [pubkey],
+      since: Math.floor(Date.now() / 1000) // Only new messages
+    }
+
     const sub = this.pool.subscribeMany(
       relays,
-      [
-        {
-          kinds: [1059], // Gift-wrap
-          '#p': [pubkey],
-          since: Math.floor(Date.now() / 1000) // Only new messages
-        }
-      ],
+      [filter],
       {
         onevent: async (event: Event) => {
           // Check if already processed (deduplication)

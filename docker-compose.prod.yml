@@ -1,17 +1,12 @@
 services:
   seal-push-server:
-    # WICHTIG: Ersetze OWNER/REPO mit deinem GitHub Username/Repository
-    image: ghcr.io/OWNER/seal-push-server:main
+    image: ghcr.io/wlanrouterking/seal-push-server:main
     container_name: seal-push-server
     restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      - PORT=3000
-      - DEFAULT_RELAYS=wss://relay.damus.io,wss://nos.lol,wss://relay.nostr.band
-      - NTFY_SERVER=https://ntfy.sh
-      # Uncomment and set your API key:
-      # - API_KEY=your-secret-key
+    expose:
+      - "3000"
+    env_file:
+      - .env
     volumes:
       - ./data:/app/data
     healthcheck:
@@ -20,3 +15,25 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+    networks:
+      - web
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - /opt/caddy/data:/data
+      - /opt/caddy/config:/config
+    networks:
+      - web
+    depends_on:
+      - seal-push-server
+
+networks:
+  web:
+    driver: bridge

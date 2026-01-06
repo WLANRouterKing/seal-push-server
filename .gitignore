@@ -28,3 +28,5 @@ logs/
 
 # Bun
 bun.lockb
+
+DEPLOYMENT.md
