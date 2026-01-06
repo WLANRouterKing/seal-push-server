@@ -1,0 +1,25 @@
+{
+  "name": "seal-push-server",
+  "version": "0.1.0",
+  "description": "Self-hostable push notification server for Seal Messenger (Nostr)",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target node",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "nostr-tools": "^2.10.4",
+    "hono": "^4.6.0",
+    "websocket-polyfill": "^0.0.3"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WLANRouterKing/seal-push-server"
+  }
+}

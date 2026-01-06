@@ -1,0 +1,22 @@
+services:
+  seal-push-server:
+    # WICHTIG: Ersetze OWNER/REPO mit deinem GitHub Username/Repository
+    image: ghcr.io/OWNER/seal-push-server:main
+    container_name: seal-push-server
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DEFAULT_RELAYS=wss://relay.damus.io,wss://nos.lol,wss://relay.nostr.band
+      - NTFY_SERVER=https://ntfy.sh
+      # Uncomment and set your API key:
+      # - API_KEY=your-secret-key
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
