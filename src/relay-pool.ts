@@ -63,11 +63,14 @@ export class RelayPool {
 
     console.log(`[RelayPool] Filter for ${npub.slice(0, 12)}...:`, JSON.stringify(filter))
 
+    console.log(`[RelayPool] Connecting to relays:`, relays)
+
     const sub = this.pool.subscribeMany(
       relays,
-      filter,
+      [filter],
       {
         onevent: async (event: Event) => {
+          console.log(`[RelayPool] RAW EVENT RECEIVED:`, event.id, event.kind)
           // Check if already processed (deduplication)
           if (database.isEventProcessed(event.id)) {
             console.log(`[RelayPool] Skipping duplicate event ${event.id.slice(0, 8)}...`)
