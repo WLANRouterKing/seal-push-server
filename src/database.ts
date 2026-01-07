@@ -37,6 +37,34 @@ try {
   // Column already exists
 }
 
+// Migration: Fix ntfy_topic NOT NULL constraint (old schema had NOT NULL)
+// SQLite doesn't support ALTER COLUMN, so we need to recreate the table
+try {
+  // Check if ntfy_topic has NOT NULL constraint by trying to insert NULL
+  const testResult = db.query(`SELECT sql FROM sqlite_master WHERE type='table' AND name='subscriptions'`).get() as { sql: string } | null
+  if (testResult?.sql?.includes('ntfy_topic TEXT NOT NULL')) {
+    console.log('[Database] Migrating: Removing NOT NULL constraint from ntfy_topic')
+
+    db.run(`BEGIN TRANSACTION`)
+    db.run(`CREATE TABLE subscriptions_new (
+      npub TEXT PRIMARY KEY,
+      relays TEXT NOT NULL,
+      ntfy_topic TEXT,
+      endpoint TEXT,
+      created_at INTEGER NOT NULL
+    )`)
+    db.run(`INSERT INTO subscriptions_new SELECT npub, relays, ntfy_topic, endpoint, created_at FROM subscriptions`)
+    db.run(`DROP TABLE subscriptions`)
+    db.run(`ALTER TABLE subscriptions_new RENAME TO subscriptions`)
+    db.run(`COMMIT`)
+
+    console.log('[Database] Migration complete: ntfy_topic can now be NULL')
+  }
+} catch (e) {
+  console.error('[Database] Migration failed:', e)
+  try { db.run(`ROLLBACK`) } catch {}
+}
+
 // Create indexes
 db.run(`CREATE INDEX IF NOT EXISTS idx_processed_npub ON processed_events(npub)`)
 db.run(`CREATE INDEX IF NOT EXISTS idx_processed_at ON processed_events(processed_at)`)
