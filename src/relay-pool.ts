@@ -1,4 +1,4 @@
-import 'websocket-polyfill'
+// Bun has native WebSocket support, no polyfill needed
 import { SimplePool, type Event, type Filter } from 'nostr-tools'
 import { nip19 } from 'nostr-tools'
 import { database } from './database'
