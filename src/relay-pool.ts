@@ -65,10 +65,9 @@ export class RelayPool {
 
     console.log(`[RelayPool] Connecting to relays:`, relays)
 
-    // @ts-expect-error nostr-tools types are wrong - subscribeMany expects Filter[] at runtime
     const sub = this.pool.subscribeMany(
       relays,
-      [filter],
+      [filter] as any,
       {
         onevent: async (event: Event) => {
           console.log(`[RelayPool] RAW EVENT RECEIVED:`, event.id, event.kind)
