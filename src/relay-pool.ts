@@ -67,7 +67,7 @@ export class RelayPool {
 
     const sub = this.pool.subscribeMany(
       relays,
-      [filter] as any,
+      filter,
       {
         onevent: async (event: Event) => {
           console.log(`[RelayPool] RAW EVENT RECEIVED:`, event.id, event.kind)
