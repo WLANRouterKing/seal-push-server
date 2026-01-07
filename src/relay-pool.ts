@@ -61,10 +61,11 @@ export class RelayPool {
       since: Math.floor(Date.now() / 1000) // Only new messages
     }
 
+    console.log(`[RelayPool] Filter for ${npub.slice(0, 12)}...:`, JSON.stringify(filter))
+
     const sub = this.pool.subscribeMany(
       relays,
-      // @ts-expect-error nostr-tools type issue with tag filters
-      [filter],
+      [filter] as Filter[],
       {
         onevent: async (event: Event) => {
           // Check if already processed (deduplication)
