@@ -97,8 +97,8 @@ export class RelayPool {
         oneose: () => {
           console.log(`[RelayPool] Subscription EOSE for ${npub.slice(0, 12)}...`)
         },
-        onclose: (reason: string) => {
-          console.log(`[RelayPool] Subscription closed for ${npub.slice(0, 12)}...: ${reason}`)
+        onclose: (reasons: string[]) => {
+          console.log(`[RelayPool] Subscription closed for ${npub.slice(0, 12)}...: ${reasons.join(', ')}`)
         }
       }
     )
