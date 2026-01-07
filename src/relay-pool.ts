@@ -55,17 +55,17 @@ export class RelayPool {
 
     // Subscribe to Gift-Wrap events (kind 1059) for this pubkey
     // Gift-wraps are addressed to the recipient's pubkey in the 'p' tag
-    const filter: Filter = {
-      kinds: [1059], // Gift-wrap
+    const filters: Filter[] = [{
+      kinds: [1059],
       '#p': [pubkey],
-      since: Math.floor(Date.now() / 1000) // Only new messages
-    }
+      since: Math.floor(Date.now() / 1000)
+    }]
 
-    console.log(`[RelayPool] Filter for ${npub.slice(0, 12)}...:`, JSON.stringify(filter))
+    console.log(`[RelayPool] Filter for ${npub.slice(0, 12)}...:`, JSON.stringify(filters))
 
     const sub = this.pool.subscribeMany(
       relays,
-      [filter] as Filter[],
+      filters,
       {
         onevent: async (event: Event) => {
           // Check if already processed (deduplication)
