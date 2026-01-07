@@ -45,10 +45,11 @@ export class RelayPool {
     const sockets: WebSocket[] = []
 
     // Subscribe to Gift-Wrap events (kind 1059) for this pubkey
+    // NOTE: No 'since' filter! NIP-17 randomizes timestamps for privacy
+    // Deduplication is handled by isEventProcessed() in database
     const filter = {
       kinds: [1059],
-      '#p': [pubkey],
-      since: Math.floor(Date.now() / 1000)
+      '#p': [pubkey]
     }
 
     console.log(`[RelayPool] Filter for ${npub.slice(0, 12)}...:`, JSON.stringify(filter))
@@ -153,10 +154,10 @@ export class RelayPool {
   }
 
   private reconnectRelay(sub: UserSubscription, relayUrl: string): void {
+    // NOTE: No 'since' filter! NIP-17 randomizes timestamps for privacy
     const filter = {
       kinds: [1059],
-      '#p': [sub.pubkey],
-      since: Math.floor(Date.now() / 1000)
+      '#p': [sub.pubkey]
     }
 
     try {
