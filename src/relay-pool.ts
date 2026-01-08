@@ -96,6 +96,13 @@ export class RelayPool {
                 return
               }
 
+              // Skip self-copies (sent messages stored for the sender)
+              const selfTag = event.tags?.find((t: string[]) => t[0] === 'self')
+              if (selfTag) {
+                console.log(`[RelayPool] Skipping self-copy: ${event.id.slice(0, 8)}...`)
+                return
+              }
+
               console.log(`[RelayPool] Gift-wrap received for ${npub.slice(0, 12)}... (PoW: ${difficulty})`)
               database.markEventProcessed(event.id, npub)
 
@@ -182,6 +189,13 @@ export class RelayPool {
 
             const difficulty = getEventDifficulty(event)
             if (difficulty < POW_THRESHOLD.MINIMUM) return
+
+            // Skip self-copies (sent messages stored for the sender)
+            const selfTag = event.tags?.find((t: string[]) => t[0] === 'self')
+            if (selfTag) {
+              console.log(`[RelayPool] Skipping self-copy: ${event.id.slice(0, 8)}...`)
+              return
+            }
 
             console.log(`[RelayPool] Gift-wrap received for ${sub.npub.slice(0, 12)}...`)
             database.markEventProcessed(event.id, sub.npub)
