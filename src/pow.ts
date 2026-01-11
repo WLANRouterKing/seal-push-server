@@ -44,6 +44,6 @@ export function getTargetDifficulty(event: Event): number | null {
 
 // Difficulty thresholds
 export const POW_THRESHOLD = {
-  TRUSTED: 16,      // Events with this PoW get no rate limiting
+  TRUSTED: 8,      // Events with this PoW get no rate limiting
   MINIMUM: 8,       // Events below this are always rejected
 } as const
