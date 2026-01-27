@@ -10,7 +10,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "hono": "^4.6.0",
+    "hono": "^4.11.7",
     "nostr-tools": "^2.10.4",
     "ws": "^8.19.0"
   },
